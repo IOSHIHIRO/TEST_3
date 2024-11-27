@@ -11,7 +11,7 @@ class Database:
                     CREATE TABLE IF NOT EXISTS homeworks (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         name TEXT,
-                        group_name INTEGER,
+                        name_group TEXT,
                         number_gr INTEGER,
                         link TEXT
                     )

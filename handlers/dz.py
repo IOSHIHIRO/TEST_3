@@ -2,14 +2,15 @@ from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+
 from bot_toc import database
 
 dz_router = Router()
 
 class Review(StatesGroup):
     name = State()
-    group = State()
-    number = State()
+    group_name = State()
+    number_gr = State()
     link = State()
 
 @dz_router.message(Command("dz"))
@@ -24,39 +25,34 @@ async def process(message: types.Message, state: FSMContext):
         await message.answer('Имя должно начинаться с заглавной буквы.')
         return
     await state.update_data(name=message.text)
-    await state.set_state(Review.group)
-    msg = "Укажите группу: "
-    kd = types.InlineKeyboardMarkup(
-        inline_keyboard=[
+    await state.set_state(Review.group_name)
+    group_kb = types.ReplyKeyboardMarkup(
+        keyboard=[
             [
-                types.InlineKeyboardButton(
-                    text='4701',
-                    callback_data='4701'
-                ),
-                types.InlineKeyboardButton(
-                    text='4702',
-                    callback_data='4702'
-                ),
-                types.InlineKeyboardButton(
-                    text='4703',
-                    callback_data='4703'
-                ),
-                types.InlineKeyboardButton(
-                    text='4704',
-                    callback_data='4704'
-                )
-            ]
-        ]
+                types.KeyboardButton(text="Группа 43-1"),
+                types.KeyboardButton(text="Группа 44-1"),
+            ],
+            [
+                types.KeyboardButton(text="Группа 45-1"),
+                types.KeyboardButton(text="Группа 46-1"),
+            ],
+            [
+                types.KeyboardButton(text="Группа 47-1"),
+                types.KeyboardButton(text="Группа 48-1"),
+            ],
+        ],
+        resize_keyboard=True,
     )
-    await message.answer(msg, reply_markup=kd)
 
-@dz_router.callback_query(F.data.in_ (['4701','4702','4703','4704']),)
-async def badly_us(callback: types.CallbackQuery, state: FSMContext):
-    await state.update_data(group=callback.data)
-    await state.set_state(Review.number)
-    await callback.message.answer("Номер ДЗ")
+    await message.answer("Теперь введи название своей группы", reply_markup=group_kb)
 
-@dz_router.message(Review.number)
+@dz_router.message(Review.group_name)
+async def process_group(message: types.Message, state: FSMContext):
+    await state.update_data(group_dz=message.text)
+    await state.set_state(Review.number_gr)
+    await message.answer("Теперь введи номер дзшки (от 1 до 8)")
+
+@dz_router.message(Review.number_gr)
 async def process(message: types.Message, state: FSMContext):
     number = message.text
     if not number.isdigit():
@@ -70,16 +66,18 @@ async def process(message: types.Message, state: FSMContext):
 async def process(message: types.Message, state: FSMContext):
     await state.update_data(link=message.text)
     await message.answer('ДЗ отправлено')
+
     data = await state.get_data()
     print(data)
 
     database.execute(
-            query="""
-              INSERT INTO homeworks (name, group_name, number_gr, link)
-              VALUES (?,?,?,?)
-              """,
-            params=(data['name'], data['group_name'], data['number_gr'], data['link'])
-        )
+        query=""" 
+               INSERT INTO homeworks (name, group_dz, number_dz, link)
+               VALUES (?, ?, ?, ?)
+               """,
+        params=(data["name"], data["name_group"], data["number_gr"], data["link"]),
+    )
+
     await state.clear()
 
 @dz_router.callback_query(F.data == 'dz')
