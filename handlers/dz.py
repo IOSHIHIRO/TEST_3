@@ -72,13 +72,13 @@ async def process(message: types.Message, state: FSMContext):
 
     database.execute(
         query=""" 
-               INSERT INTO homeworks (name, group_dz, number_dz, link)
+               INSERT INTO homeworks (name, name_group, number_gr, link)
                VALUES (?, ?, ?, ?)
                """,
         params=(data["name"], data["name_group"], data["number_gr"], data["link"]),
     )
 
-    await state.clear()
+
 
 @dz_router.callback_query(F.data == 'dz')
 async def review_us(callback: types.CallbackQuery, state: FSMContext):
