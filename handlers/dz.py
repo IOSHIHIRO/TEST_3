@@ -9,8 +9,8 @@ dz_router = Router()
 
 class Review(StatesGroup):
     name = State()
-    group_name = State()
-    number_gr = State()
+    word_gru = State()
+    nom = State()
     link = State()
 
 @dz_router.message(Command("dz"))
@@ -25,7 +25,7 @@ async def process(message: types.Message, state: FSMContext):
         await message.answer('Имя должно начинаться с заглавной буквы.')
         return
     await state.update_data(name=message.text)
-    await state.set_state(Review.group_name)
+    await state.set_state(Review.word_gru)
     group_kb = types.ReplyKeyboardMarkup(
         keyboard=[
             [
@@ -46,13 +46,13 @@ async def process(message: types.Message, state: FSMContext):
 
     await message.answer("Теперь введи название своей группы", reply_markup=group_kb)
 
-@dz_router.message(Review.group_name)
+@dz_router.message(Review.word_gru)
 async def process_group(message: types.Message, state: FSMContext):
     await state.update_data(group_dz=message.text)
-    await state.set_state(Review.number_gr)
+    await state.set_state(Review.nom)
     await message.answer("Теперь введи номер дзшки (от 1 до 8)")
 
-@dz_router.message(Review.number_gr)
+@dz_router.message(Review.nom)
 async def process(message: types.Message, state: FSMContext):
     number = message.text
     if not number.isdigit():
@@ -72,11 +72,12 @@ async def process(message: types.Message, state: FSMContext):
 
     database.execute(
         query=""" 
-               INSERT INTO homeworks (name, name_group, number_gr, link)
+               INSERT INTO homeworks (name, word_gru, nom, link)
                VALUES (?, ?, ?, ?)
                """,
-        params=(data["name"], data["name_group"], data["number_gr"], data["link"]),
+        params=(data["name"], data["word_gru"], data["nom"], data["link"]),
     )
+    await state.clear()
 
 
 
