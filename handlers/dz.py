@@ -48,17 +48,17 @@ async def process(message: types.Message, state: FSMContext):
 
 @dz_router.message(Review.word_gru)
 async def process_group(message: types.Message, state: FSMContext):
-    await state.update_data(group_dz=message.text)
+    await state.update_data(word_gru=message.text)
     await state.set_state(Review.nom)
     await message.answer("Теперь введи номер дзшки (от 1 до 8)")
 
 @dz_router.message(Review.nom)
 async def process(message: types.Message, state: FSMContext):
-    number = message.text
-    if not number.isdigit():
+    nom = message.text
+    if not nom.isdigit():
         await message.answer("Вводите только цифры")
         return
-    await state.update_data(number=message.text)
+    await state.update_data(nom=message.text)
     await state.set_state(Review.link)
     await message.answer("Ссылка на гитхаб")
 
@@ -75,7 +75,7 @@ async def process(message: types.Message, state: FSMContext):
                INSERT INTO homeworks (name, word_gru, nom, link)
                VALUES (?, ?, ?, ?)
                """,
-        params=(data["name"], data["word_gru"], data["nom"], data["link"]),
+        params=(data['name'], data['word_gru'], data['nom'], data['link']),
     )
     await state.clear()
 
